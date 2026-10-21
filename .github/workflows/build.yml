@@ -4,6 +4,11 @@ on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      release:
+        description: 'Also publish a GitHub Release with the files'
+        type: boolean
+        default: false
 
 permissions:
   contents: write   # lets a tagged build attach its files to the GitHub Release
@@ -81,17 +86,18 @@ jobs:
             dist/*.appx
             dist/*.dmg
 
-      # On a version tag (v1.0.1 …) also attach the files to that GitHub Release
+      # On a version tag, or when "release" is ticked, attach the files to a GitHub Release
       - name: Attach to GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') || inputs.release
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --title "DroneLink ${GITHUB_REF_NAME#v}" --notes "Downloads for DroneLink ${GITHUB_REF_NAME#v}. Store package: DroneLink-*.appx. Windows installer: DroneLink-Setup-*.exe. Mac: DroneLink-*-arm64.dmg (Apple Silicon) and DroneLink-*-x64.dmg (Intel)." || true
+          TAG="v$(node -p "require('./package.json').version")"
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --target "$GITHUB_SHA" --title "DroneLink ${TAG#v}" --notes "Downloads for DroneLink ${TAG#v}. Microsoft Store package: DroneLink-*.appx. Windows installer: DroneLink-Setup-*.exe. Mac: DroneLink-*-arm64.dmg (Apple Silicon) and DroneLink-*-x64.dmg (Intel)." || sleep 15
           shopt -s nullglob
           for f in dist/*.exe dist/*.appx dist/*.dmg; do
             n=$(basename "$f" | tr ' ' '-')
-            [ "$n" != "$(basename "$f")" ] && cp "$f" "dist/$n" && f="dist/$n"
-            gh release upload "$GITHUB_REF_NAME" "$f" --clobber
+            if [ "$n" != "$(basename "$f")" ]; then cp "$f" "dist/$n"; f="dist/$n"; fi
+            gh release upload "$TAG" "$f" --clobber
           done
