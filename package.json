@@ -16,7 +16,7 @@
   },
   "keywords": [],
   "author": "Gagan Kumar",
-  "license": "MIT",
+  "license": "UNLICENSED",
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@napi-rs/canvas": "^1.0.11",
