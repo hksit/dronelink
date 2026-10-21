@@ -1,0 +1,103 @@
+{
+  "name": "dronelink",
+  "version": "1.0.0",
+  "description": "Receive a DJI drone's live stream on Windows or Mac and show it in OBS, a browser, a recording or a live platform. Includes a test drone.",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "drone": "node src/drone/cli.js",
+    "icon": "node scripts/make-icon.js",
+    "vendor": "node scripts/copy-vendor.js",
+    "postinstall": "node scripts/copy-vendor.js",
+    "dist:win": "electron-builder --win nsis",
+    "dist:mac": "electron-builder --mac dmg",
+    "test": "node scripts/smoke-test.js",
+    "dist:store": "electron-builder --win appx"
+  },
+  "keywords": [],
+  "author": "Gagan Kumar",
+  "license": "MIT",
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@napi-rs/canvas": "^1.0.11",
+    "mpegts.js": "^1.8.2",
+    "node-media-server": "^4.4.6",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "electron": "^44.9.1",
+    "electron-builder": "^26.15.3"
+  },
+  "productName": "DroneLink",
+  "build": {
+    "appId": "com.dronelink.app",
+    "productName": "DroneLink",
+    "asar": false,
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "web/**/*",
+      "assets/**/*",
+      "build/icon.png",
+      "package.json",
+      "node_modules/**/*",
+      "!node_modules/electron/**",
+      "!node_modules/electron-builder/**",
+      "!**/*.map"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true,
+      "include": "build/installer.nsh",
+      "artifactName": "DroneLink-Setup-${version}.exe"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.video",
+      "icon": "build/icon.png",
+      "artifactName": "DroneLink-${version}-${arch}.dmg",
+      "extendInfo": {
+        "NSLocalNetworkUsageDescription": "DroneLink receives the live video your drone app sends over Wi-Fi."
+      },
+      "hardenedRuntime": true,
+      "notarize": true,
+      "gatekeeperAssess": false
+    },
+    "dmg": {
+      "title": "DroneLink"
+    },
+    "publish": null,
+    "appx": {
+      "identityName": "FILL-FROM-PARTNER-CENTER.DroneLink",
+      "publisher": "CN=FILL-FROM-PARTNER-CENTER",
+      "publisherDisplayName": "FILL-FROM-PARTNER-CENTER",
+      "displayName": "DroneLink",
+      "applicationId": "DroneLink",
+      "backgroundColor": "#152230",
+      "languages": [
+        "en-AU",
+        "en-US"
+      ]
+    }
+  }
+}

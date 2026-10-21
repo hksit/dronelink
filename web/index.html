@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Drone live view</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; color: #e6edf2; font: 15px/1.5 -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  video { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; }
+  .msg { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px; }
+  .msg[hidden] { display: none; }
+  .msg p { margin: 0; max-width: 32ch; color: #8fa3b4; }
+  .msg b { display: block; color: #e6edf2; font-size: 18px; margin-bottom: 6px; }
+  .tap { position: fixed; right: 14px; bottom: 14px; background: rgba(21,34,48,.85); color: #e6edf2; border: 1px solid #2f465b; border-radius: 8px; padding: 8px 12px; font: inherit; }
+  .obs .msg, .obs .tap { display: none !important; }
+  .obs, .obs body, .obs video { background: transparent; }
+</style>
+</head>
+<body>
+<video id="v" muted playsinline autoplay></video>
+<div class="msg" id="msg"><p><b>Waiting for the drone</b>The picture starts by itself when the pilot goes live.</p></div>
+<button class="tap" id="sound" hidden>Tap for sound</button>
+<script src="vendor/mpegts.js"></script>
+<script src="overlay.js"></script>
+<script>
+(function () {
+  var obs = /[?&]obs=1/.test(location.search);
+  if (obs) document.documentElement.className = 'obs';
+  var video = document.getElementById('v');
+  var msg = document.getElementById('msg');
+  var player = null, path = '', last = -1, still = 0;
+  var clean = /[?&]clean=1/.test(location.search);
+  var ovl = window.DroneLinkOverlay ? DroneLinkOverlay.create(document.body) : null;
+
+  function show(title, text) { msg.hidden = false; msg.innerHTML = '<p><b>' + title + '</b>' + text + '</p>'; }
+
+  function stop() {
+    if (!player) return;
+    try { player.pause(); player.unload(); player.detachMediaElement(); player.destroy(); } catch (e) {}
+    player = null; path = '';
+  }
+
+  function start(p) {
+    stop();
+    if (!window.mpegts || !mpegts.isSupported()) { show('This browser can’t play the live view', 'Try Chrome, Edge or Firefox, or Safari on iOS 17.1 or later.'); return; }
+    path = p;
+    player = mpegts.createPlayer({ type: 'flv', isLive: true, url: location.origin + p + '.flv' }, {
+      enableStashBuffer: false, liveBufferLatencyChasing: true, liveBufferLatencyMaxLatency: 1.5, liveBufferLatencyMinRemain: 0.3, autoCleanupSourceBuffer: true
+    });
+    player.attachMediaElement(video);
+    player.on(mpegts.Events.ERROR, function () { setTimeout(function () { stop(); }, 0); });
+    player.on(mpegts.Events.LOADING_COMPLETE, function () { stop(); });
+    player.load();
+    var pr = video.play(); if (pr && pr.catch) pr.catch(function () {});
+  }
+
+  video.addEventListener('playing', function () { msg.hidden = true; if (!obs && video.muted) document.getElementById('sound').hidden = false; });
+  document.getElementById('sound').onclick = function () { video.muted = false; this.hidden = true; };
+
+  function poll() {
+    fetch('live.json?t=' + Date.now(), { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (s) {
+      if (ovl) { if (clean && s.overlay) s.overlay.enabled = false; ovl.update(s); }
+      if (s.status === 'publishing') {
+        if (!player || path !== s.path) start(s.path); else if (!video.paused) msg.hidden = true;
+      } else if (s.status === 'reconnecting') {
+        show('Drone signal lost', 'Waiting for the drone to reconnect…');
+      } else {
+        stop(); show('Waiting for the drone', 'The picture starts by itself when the pilot goes live.');
+      }
+    }).catch(function () { show('DroneLink is not reachable', 'Check that this device is on the same Wi-Fi and DroneLink is open.'); });
+    // restart a frozen player
+    if (player) { if (video.currentTime === last) still++; else still = 0; last = video.currentTime; if (still >= 4) { stop(); still = 0; } }
+  }
+  poll(); setInterval(poll, 1000);
+})();
+</script>
+</body>
+</html>

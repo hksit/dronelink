@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self' http://127.0.0.1:* ws://127.0.0.1:*; worker-src 'self' blob:">
+<title>DroneLink</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 32 32" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><circle cx="25" cy="7" r="4.5"/><circle cx="7" cy="25" r="4.5"/><circle cx="25" cy="25" r="4.5"/><path d="M10 10l12 12M22 10L10 22"/><rect x="12" y="12" width="8" height="8" rx="2"/></svg>
+    <span>DroneLink</span>
+  </div>
+  <div class="status" id="status" data-state="idle">
+    <span class="dot"></span><span id="statusText">Starting receiver…</span>
+  </div>
+  <button class="btn ghost" id="openDrone" type="button">Fly a test drone</button>
+</header>
+
+<main class="layout">
+  <section class="stage">
+    <div class="screen" id="screen">
+      <video id="video" muted playsinline></video>
+      <div class="overlay" id="overlay">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="14" cy="14" r="9"/><circle cx="50" cy="14" r="9"/><circle cx="14" cy="50" r="9"/><circle cx="50" cy="50" r="9"/><path d="M20 20l24 24M44 20L20 44"/><rect x="25" y="25" width="14" height="14" rx="3"/></svg>
+        <p class="overlay-title" id="overlayTitle">Waiting for your drone</p>
+        <p class="overlay-sub" id="overlaySub">Enter the address on the right in DJI Fly and start the live stream. The picture appears here automatically.</p>
+      </div>
+      <div class="rec-badge" id="recBadge" hidden><span></span>REC <b id="recTime">00:00</b></div>
+      <div class="screen-tools">
+        <button class="chip-btn" id="infoToggle" type="button" aria-pressed="true" title="Show or hide on-screen info (I)">Info on video: On</button>
+        <button class="chip-btn" id="fullBtn" type="button" title="Full screen (F)">Full screen</button>
+      </div>
+    </div>
+    <dl class="stats" id="stats">
+      <div><dt>Picture</dt><dd id="stRes">–</dd></div>
+      <div><dt>Frame rate</dt><dd id="stFps">–</dd></div>
+      <div><dt>Bitrate</dt><dd id="stKbps">–</dd></div>
+      <div><dt>Live for</dt><dd id="stUp">–</dd></div>
+      <div><dt>Sent from</dt><dd id="stFrom">–</dd></div>
+      <div><dt>Watching</dt><dd id="stViewers">–</dd></div>
+    </dl>
+
+    <div class="panel">
+      <div class="tabs" role="tablist">
+        <button role="tab" aria-selected="true" data-tab="obs">Show in OBS</button>
+        <button role="tab" aria-selected="false" data-tab="info">On-screen info</button>
+        <button role="tab" aria-selected="false" data-tab="watch">Watch on other devices</button>
+        <button role="tab" aria-selected="false" data-tab="record">Record</button>
+        <button role="tab" aria-selected="false" data-tab="golive">Go live</button>
+        <button role="tab" aria-selected="false" data-tab="help">Help</button>
+      </div>
+
+      <div class="tabpane" data-pane="obs">
+        <p>In OBS, click <b>+</b> under Sources, choose <b>Browser</b>, and paste this address. Set width 1280 and height 720. The drone picture stays in place even if the drone reconnects.</p>
+        <div class="copyrow"><code id="obsBrowserUrl">…</code><button class="btn" data-copy="obsBrowserUrl" type="button">Copy</button></div>
+        <details>
+          <summary>Prefer a Media Source, or OBS on another computer?</summary>
+          <p>Add a <b>Media Source</b>, untick <b>Local file</b> and paste this into <b>Input</b>. Tick “Restart playback when source becomes active”.</p>
+          <div class="copyrow"><code id="obsMediaUrl">…</code><button class="btn" data-copy="obsMediaUrl" type="button">Copy</button></div>
+          <p class="muted">On another computer on the same Wi-Fi, use the drone address shown on the right instead.</p>
+        </details>
+      </div>
+
+      <div class="tabpane" data-pane="info" hidden>
+        <p>Choose what appears over the drone picture. The same look shows in this preview, in the OBS Browser source and on viewers' screens. Turn it off for a clean picture.</p>
+        <div class="info-grid">
+          <label class="switch"><input type="checkbox" id="ovEnabled"> <span>Show info on video</span></label>
+          <label class="switch"><input type="checkbox" id="ovLive"> <span>LIVE badge and time on air</span></label>
+          <label class="switch"><input type="checkbox" id="ovClock"> <span>Clock</span></label>
+          <label class="switch"><input type="checkbox" id="ovDetails"> <span>Stream details (quality, frame rate, bitrate)</span></label>
+        </div>
+        <div class="form two">
+          <label>Title (bottom left)
+            <input id="ovTitle" type="text" maxlength="80" placeholder="e.g. Kings Park aerial survey" spellcheck="true">
+          </label>
+          <label>Second line
+            <input id="ovSub" type="text" maxlength="80" placeholder="e.g. Pilot: G. Kumar · Perth WA" spellcheck="true">
+          </label>
+        </div>
+        <p class="muted small">Recordings, Go live and the OBS Media Source carry the clean drone picture. In OBS, use the Browser source to include this info. Shortcut: press <b>I</b> to show or hide, <b>F</b> for full screen.</p>
+      </div>
+
+      <div class="tabpane" data-pane="watch" hidden>
+        <p>Anyone on the same Wi-Fi can open this in a browser on their phone, tablet or laptop. No app needed.</p>
+        <div class="watchrow">
+          <div class="copyrow grow"><code id="watchUrl">…</code><button class="btn" data-copy="watchUrl" type="button">Copy</button></div>
+          <img id="watchQr" class="qr small" alt="QR code for the watch link">
+        </div>
+        <p class="muted">Works in Chrome, Edge, Firefox and Android, and Safari on iPhone with iOS 17.1 or later.</p>
+      </div>
+
+      <div class="tabpane" data-pane="record" hidden>
+        <p>Save the drone feed to an MP4 file. Recording continues automatically if the drone reconnects, and the file stays playable even if the computer shuts down unexpectedly.</p>
+        <div class="actions">
+          <button class="btn primary" id="recBtn" type="button">Start recording</button>
+          <button class="btn" id="recOpen" type="button">Open recordings folder</button>
+          <button class="btn ghost" id="recChange" type="button">Change folder</button>
+        </div>
+        <p class="note" id="recNote"></p>
+        <p class="muted" id="recFolder"></p>
+      </div>
+
+      <div class="tabpane" data-pane="golive" hidden>
+        <p>Send the drone feed straight to YouTube, Facebook or any platform that gives you a stream URL and key. You can skip OBS entirely.</p>
+        <div class="form">
+          <label>Platform
+            <select id="glPlatform">
+              <option value="youtube">YouTube</option>
+              <option value="facebook">Facebook</option>
+              <option value="custom">Other (custom RTMP)</option>
+            </select>
+          </label>
+          <label>Stream URL
+            <input id="glServer" type="text" spellcheck="false" autocomplete="off">
+          </label>
+          <label>Stream key
+            <input id="glKey" type="password" spellcheck="false" autocomplete="off">
+          </label>
+        </div>
+        <div class="actions">
+          <button class="btn primary" id="glBtn" type="button">Go live</button>
+          <button class="btn ghost" id="glForget" type="button" hidden>Forget saved key</button>
+        </div>
+        <p class="note" id="glNote"></p>
+      </div>
+
+      <div class="tabpane help" data-pane="help" hidden>
+        <h3>Which drones work</h3>
+        <ul>
+          <li><b>DJI Fly drones</b> (Mini, Air, Mavic 3, Avata, FPV, Neo, Flip): use the RTMP option in DJI Fly.</li>
+          <li><b>DJI GO 4 drones</b> (Phantom 4, Mavic 2, Mavic Air): Live streaming → Custom RTMP.</li>
+          <li><b>DJI Pilot 2</b> (Matrice, Mavic 3 Enterprise): RTMP, or RTSP using the box under “In DJI Fly” on the right.</li>
+          <li>Flying with goggles only (no phone or screen controller) gives DJI Fly nothing to stream from. Use a controller with HDMI out and a capture card into OBS instead.</li>
+        </ul>
+        <h3>What you receive</h3>
+        <p>The same live view the phone or controller shows, re-encoded by the drone app (usually 720p). If the drone flies far and the controller’s picture gets blocky or freezes, this picture does too. It can never be better than what the controller receives. Flight data such as altitude and GPS is not part of DJI’s live stream. Full-quality footage is still recorded on the drone’s SD card.</p>
+        <h3>The picture never appears</h3>
+        <ul>
+          <li>The phone or controller running DJI Fly must be on the <b>same Wi-Fi</b> as this computer. Mobile data won’t work.</li>
+          <li>When Windows or macOS asks whether DroneLink may accept connections, choose <b>Allow</b>. On Windows, tick both Private and Public networks.</li>
+          <li>Some venue and guest Wi-Fi networks block devices from talking to each other. Turn on your phone’s hotspot and connect this computer to it instead. DroneLink updates the address by itself.</li>
+          <li>Check the address in DJI Fly matches the one on the right exactly, including <code>/live/drone</code>.</li>
+        </ul>
+        <h3>Check DroneLink itself</h3>
+        <p>Click <b>Fly a test drone</b> at the top. If the test picture appears, DroneLink and OBS are working and any problem is between the drone app and this computer.</p>
+        <h3>Where to find live streaming in DJI Fly</h3>
+        <p>Connect to the drone, tap <b>···</b> (top right), then <b>Transmission</b>, <b>Live Streaming Platforms</b>, <b>RTMP</b>. Paste the address and tap <b>Start Live</b>. Keep DJI Fly open on screen while streaming.</p>
+      </div>
+    </div>
+  </section>
+
+  <aside class="side">
+    <section class="ticket" aria-labelledby="ticketTitle">
+      <h2 id="ticketTitle">Drone address</h2>
+      <p class="ticket-sub">Type this into DJI Fly as the RTMP address.</p>
+      <div class="addr" id="droneUrl">…</div>
+      <button class="btn primary wide" data-copy="droneUrl" type="button">Copy address</button>
+      <div class="qrwrap">
+        <img id="droneQr" class="qr" alt="QR code containing the drone address">
+        <p>Scan with the phone camera, copy the text, then paste it into DJI Fly. Saves typing.</p>
+      </div>
+      <label class="netpick" id="netPick" hidden>Network
+        <select id="ipSelect"></select>
+      </label>
+      <p class="warn" id="netWarn" hidden></p>
+    </section>
+
+    <section class="howto">
+      <h2>In DJI Fly</h2>
+      <ol>
+        <li>Connect the drone and open the camera view.</li>
+        <li>Tap <b>···</b>, then <b>Transmission</b>.</li>
+        <li>Choose <b>Live Streaming Platforms</b>, then <b>RTMP</b>.</li>
+        <li>Paste the address and tap <b>Start Live</b>.</li>
+      </ol>
+      <p class="muted small">DJI GO 4 (Phantom 4, Mavic 2): Live streaming → Custom RTMP. DJI Pilot 2: Live Streaming → RTMP.</p>
+      <details class="rtsp">
+        <summary>Drone app gives you an rtsp:// address instead?</summary>
+        <p class="muted small">DJI Pilot 2 (Matrice, Mavic 3 Enterprise) can serve RTSP. Paste that address and DroneLink fetches it.</p>
+        <input id="rtspUrl" type="text" placeholder="rtsp://user:pass@192.168.1.30:8554/streaming/live/1" spellcheck="false">
+        <div class="actions"><button class="btn" id="rtspBtn" type="button">Connect</button></div>
+        <p class="note" id="rtspNote"></p>
+      </details>
+    </section>
+  </aside>
+</main>
+
+<div class="sheet-backdrop" id="sheetBackdrop" hidden></div>
+<aside class="sheet" id="droneSheet" aria-labelledby="sheetTitle" hidden>
+  <div class="sheet-head">
+    <h2 id="sheetTitle">Test drone</h2>
+    <button class="icon-btn" id="closeDrone" type="button" aria-label="Close">✕</button>
+  </div>
+  <p>A pretend drone that flies over a generated landscape and streams to DroneLink the same way DJI Fly does, with a flight HUD, telemetry and silent audio. Use it to test OBS, recording and Go Live without flying.</p>
+
+  <fieldset class="choice">
+    <legend>Send the test feed to</legend>
+    <label><input type="radio" name="target" value="local" checked> This computer</label>
+    <label><input type="radio" name="target" value="remote"> DroneLink on another computer</label>
+  </fieldset>
+  <label class="remote" id="remoteRow" hidden>IP address of the other computer
+    <input id="remoteIp" type="text" placeholder="e.g. 192.168.1.20" spellcheck="false">
+  </label>
+
+  <label class="switch hudrow"><input type="checkbox" id="droneHud" checked> <span>Show flight display (HUD) in the test picture</span></label>
+  <p class="muted small">Real DJI live streams have no flight display. Turn this off to see exactly what a real drone sends.</p>
+
+  <fieldset class="choice">
+    <legend>Picture size</legend>
+    <label><input type="radio" name="quality" value="720p" checked> 720p (like DJI Fly)</label>
+    <label><input type="radio" name="quality" value="1080p"> 1080p</label>
+  </fieldset>
+
+  <div class="actions">
+    <button class="btn primary" id="droneBtn" type="button">Take off</button>
+  </div>
+  <fieldset class="choice sim">
+    <legend>Test what happens far away</legend>
+    <div class="actions">
+      <button class="btn" id="weakBtn" type="button" disabled aria-pressed="false">Simulate weak signal</button>
+      <button class="btn" id="lossBtn" type="button" disabled>Simulate signal loss</button>
+    </div>
+    <p class="muted small">Weak signal makes the picture blocky and juddery, as the controller shows at long range. Signal loss cuts the feed for 6 seconds, then reconnects like DJI Fly does.</p>
+  </fieldset>
+  <div class="drone-status" id="droneStatus" data-state="stopped">
+    <span class="dot"></span><span id="droneStatusText">On the ground.</span>
+  </div>
+  <dl class="telemetry" id="telemetry" hidden>
+    <div><dt>Altitude</dt><dd id="tAlt">–</dd></div>
+    <div><dt>Speed</dt><dd id="tSpd">–</dd></div>
+    <div><dt>Distance</dt><dd id="tDist">–</dd></div>
+    <div><dt>Battery</dt><dd id="tBat">–</dd></div>
+  </dl>
+</aside>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="../../web/vendor/mpegts.js"></script>
+<script src="../../web/overlay.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
