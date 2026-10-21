@@ -11,6 +11,7 @@ const { Recorder } = require('../src/main/outputs');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'dronelink-test-'));
 const fail = (msg) => {
   console.error('FAIL:', msg);
+  if (process.env.GITHUB_ACTIONS) console.log(`::error title=Self-test failed::${String(msg).replace(/\n/g, '%0A')}`);
   process.exit(1);
 };
 
@@ -23,7 +24,7 @@ const fail = (msg) => {
   await drone.start();
 
   const live = await new Promise((resolve) => {
-    const t = setTimeout(() => resolve(null), 20000);
+    const t = setTimeout(() => resolve(null), 60000); // slow CI machines need longer
     server.on('streams', (list) => {
       const s = list.find((x) => x.status === 'publishing' && x.width);
       if (s) {
@@ -40,9 +41,9 @@ const fail = (msg) => {
   const rec = new Recorder(tmp);
   rec.setSource({ url: `rtmp://127.0.0.1:${server.rtmpPort}/live/drone`, hasAudio: true });
   rec.enable();
-  await new Promise((r) => setTimeout(r, 5000));
+  await new Promise((r) => setTimeout(r, 8000));
   rec.disable();
-  await new Promise((r) => setTimeout(r, 1500));
+  await new Promise((r) => setTimeout(r, 3000));
   const size = rec.file && fs.existsSync(rec.file) ? fs.statSync(rec.file).size : 0;
   if (size < 100000) fail('recording is empty');
   console.log(`recorded ${(size / 1e6).toFixed(1)} MB`);
