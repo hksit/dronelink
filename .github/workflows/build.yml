@@ -44,8 +44,8 @@ jobs:
         run: |
           set -o pipefail
           npm run ${{ matrix.script }} 2>&1 | tee build.log || {
-            echo "::error title=Build failed::See the lines below"
-            tail -n 40 build.log | while IFS= read -r line; do echo "::error::${line//%/%25}"; done
+            msg=$(tail -n 25 build.log | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+            echo "::error title=Build failed::${msg}"
             exit 1
           }
         env:
