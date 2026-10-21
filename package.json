@@ -88,9 +88,9 @@
     },
     "publish": null,
     "appx": {
-      "identityName": "FILL-FROM-PARTNER-CENTER.DroneLink",
-      "publisher": "CN=FILL-FROM-PARTNER-CENTER",
-      "publisherDisplayName": "FILL-FROM-PARTNER-CENTER",
+      "identityName": "hksit.DroneLink",
+      "publisher": "CN=DB0A9D9D-BF75-40BB-8133-CA722331D72D",
+      "publisherDisplayName": "hksit",
       "displayName": "DroneLink",
       "applicationId": "DroneLink",
       "backgroundColor": "#152230",
