@@ -63,10 +63,10 @@ store/screenshots/6-record-mp4.png — Record the flight to MP4
 Photo & video
 
 ## Privacy policy URL
-https://github.com/hksit/dronelink/blob/main/PRIVACY.md
+https://github.com/hksit/dronelink-support/blob/main/PRIVACY.md
 
 ## Support contact / website
-https://github.com/hksit/dronelink
+https://github.com/hksit/dronelink-support
 
 ## Notes for certification (Submission options)
 DroneLink receives a live video stream from drone apps on the local network (RTMP on port 1935, preview on port 8000). No drone is needed to test it: click "Fly a test drone", then "Take off". The test picture appears in the preview, and the "Watch on other devices" link plays it in a browser. Windows may ask to allow network access the first time; choose Allow. No account or login is required.
