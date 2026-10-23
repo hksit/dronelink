@@ -1,6 +1,6 @@
 {
   "name": "dronelink",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Receive a DJI drone's live stream on Windows or Mac and show it in OBS, a browser, a recording or a live platform. Includes a test drone.",
   "main": "src/main/main.js",
   "scripts": {
@@ -33,6 +33,7 @@
   "build": {
     "appId": "com.dronelink.app",
     "productName": "DroneLink",
+    "electronLanguages": ["en-US"],
     "asar": false,
     "directories": {
       "output": "dist",

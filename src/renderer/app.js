@@ -100,7 +100,7 @@ async function applyInfo(next) {
   if (!$('remoteIp').value) $('remoteIp').value = info.droneRemoteIp || '';
   if (!$('rtspUrl').value) $('rtspUrl').value = info.rtspUrl || '';
   document.querySelector(`input[name="quality"][value="${info.droneQuality}"]`).checked = true;
-  $('droneHud').checked = info.droneHud !== false;
+  $('droneHud').checked = info.droneHud === true;
   if (!ov) applyOverlay(info.overlay);
   renderStreams();
 }

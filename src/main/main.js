@@ -13,7 +13,7 @@ const { Settings } = require('./settings');
 
 const ROOT = path.join(__dirname, '..', '..');
 const STREAM_PATH = '/live/drone';
-const OVERLAY_DEFAULT = { enabled: true, live: true, clock: true, details: false, title: '', subtitle: '' };
+const OVERLAY_DEFAULT = { enabled: false, live: true, clock: true, details: false, title: '', subtitle: '' };
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -81,7 +81,7 @@ function info() {
     droneRemoteIp: settings.get('droneRemoteIp', ''),
     rtspUrl: settings.get('rtspUrl', ''),
     overlay: overlaySettings(),
-    droneHud: settings.get('droneHud', true),
+    droneHud: settings.get('droneHud', false),
   };
 }
 
@@ -294,6 +294,12 @@ function registerIpc() {
 app.whenReady().then(async () => {
   nativeTheme.themeSource = 'dark';
   settings = new Settings(app.getPath('userData'), safeStorage);
+  // 1.0.2: the video is clean by default (no words on the picture) — reset once for existing users
+  if (!settings.get('cleanVideoDefault')) {
+    settings.set('overlay', { ...settings.get('overlay', {}), enabled: false });
+    settings.set('droneHud', false);
+    settings.set('cleanVideoDefault', true);
+  }
   ips = lanAddresses();
   prepareWebDir();
 
