@@ -133,7 +133,7 @@ The test drone is a pretend drone inside DroneLink. It flies a figure-eight over
 4. Click **Take off**. After 2 to 3 seconds the status turns green ("Streaming to…") and altitude, speed, distance and battery start counting.
 5. Close the panel with **✕**. The test drone keeps flying, and the top button reads **Test drone flying**.
 
-**Show flight display (HUD) in the test picture** draws a DJI-style display (altitude, speed, compass, battery) into the video. Real DJI live streams have no such display, so untick it to see exactly what a real drone sends. You can switch it while flying.
+**Show flight display (HUD) in the test picture** is **off by default**, so the test picture is clean video, exactly like a real DJI live stream. Tick it to draw a DJI-style display (altitude, speed, compass, battery) into the video. You can switch it while flying.
 
 ![Test drone panel before take-off](images/02-testdrone-ground.png)
 
@@ -194,6 +194,8 @@ DroneLink can lay a broadcast-style info layer over the drone picture, and you c
 ![On-screen info over the drone picture in OBS](images/obs-page.png)
 
 **Turn it on or off**
+
+The info is **off by default** (from version 1.0.2), so viewers see only the video.
 
 - Hover over the preview and click **Info on video: On / Off**, or press **I**.
 - **Full screen** (or press **F**) fills the monitor with the preview. Press **Esc** to leave.

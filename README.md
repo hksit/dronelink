@@ -35,7 +35,7 @@ The phone running DJI Fly and the computer must be on the same Wi-Fi. If a venue
 
 ### Test drone
 
-**Fly a test drone** (top right) streams a simulated flight with a DJI-style HUD to this computer, or to DroneLink on another computer by IP. While flying you can:
+**Fly a test drone** (top right) streams a simulated flight (clean video by default, with an optional DJI-style HUD) to this computer, or to DroneLink on another computer by IP. While flying you can:
 - **Simulate weak signal**: blocky, juddery picture with short freezes, like long range.
 - **Simulate signal loss**: cuts the feed for 6 s, then reconnects like DJI Fly does.
 
