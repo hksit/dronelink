@@ -195,6 +195,25 @@ for (const [id, key] of [['ovTitle', 'title'], ['ovSub', 'subtitle']]) {
 }
 $('infoToggle').addEventListener('click', () => setOverlay({ enabled: !(ov && ov.enabled) }));
 $('fullBtn').addEventListener('click', () => toggleFull());
+// Buttons on the picture appear when the mouse moves and fade out after 2.5 s, like a video player
+(() => {
+  const scr = $('screen');
+  let idle = null;
+  const hide = () => {
+    if (scr.querySelector('.screen-tools:hover')) return wake(); // keep them while the pointer is on a button
+    scr.classList.remove('tools-on');
+    scr.classList.add('idle');
+  };
+  function wake() {
+    scr.classList.add('tools-on');
+    scr.classList.remove('idle');
+    clearTimeout(idle);
+    idle = setTimeout(hide, 2500);
+  }
+  scr.addEventListener('mousemove', wake);
+  scr.addEventListener('mousedown', wake);
+  scr.addEventListener('mouseleave', () => { clearTimeout(idle); scr.classList.remove('tools-on', 'idle'); });
+})();
 function toggleFull() {
   if (document.fullscreenElement) document.exitFullscreen();
   else $('screen').requestFullscreen().catch(() => {});

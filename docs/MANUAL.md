@@ -66,7 +66,7 @@ When a drone is live, the picture fills the preview and the stats bar fills in:
 | --- | --- |
 | Status (top left) | Yellow dot: ready and waiting. Red dot: live. Blinking yellow: drone feed paused, waiting to reconnect. Red text: a problem, with the reason. |
 | Fly a test drone (top right) | Opens the test drone panel (section 5). |
-| Preview | The live picture, about 1 second behind the controller. Hover over it for **Info on video** and **Full screen**. |
+| Preview | The live picture, about 1 second behind the controller. Move the mouse over it for **Info on video** and **Full screen**; they hide again after a few seconds. |
 | Stats bar | Picture size, frame rate, bitrate, time live, which device is sending ("This computer" or the phone's IP), and how many viewers are watching. |
 | Tabs | Show in OBS, On-screen info, Watch on other devices, Record, Go live, Help. |
 | Drone address | The address to type into the drone app, with a Copy button and a QR code. |
@@ -197,7 +197,7 @@ DroneLink can lay a broadcast-style info layer over the drone picture, and you c
 
 The info is **off by default** (from version 1.0.2), so viewers see only the video.
 
-- Hover over the preview and click **Info on video: On / Off**, or press **I**.
+- Move the mouse over the preview and click **Info on video: On / Off**, or press **I**. The buttons fade away after a few seconds when the mouse stops, so the picture stays clean.
 - **Full screen** (or press **F**) fills the monitor with the preview. Press **Esc** to leave.
 
 ![Clean picture with info turned off](images/11-overlay-off.png)
