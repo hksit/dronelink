@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000"
+    android:keepScreenOn="true">
+
+    <SurfaceView
+        android:id="@+id/liveView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center" />
+
+    <TextView
+        android:id="@+id/centerMsg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/chip"
+        android:gravity="center"
+        android:maxWidth="460dp"
+        android:padding="16dp"
+        android:textColor="@color/text"
+        android:textSize="16sp" />
+
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <TextView android:id="@+id/chipDrone" style="@style/Chip" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        <TextView android:id="@+id/chipGps" style="@style/Chip" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        <TextView android:id="@+id/chipBattery" style="@style/Chip" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+        <TextView android:id="@+id/chipSim" style="@style/Chip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SIMULATOR" android:textColor="@color/warn" android:visibility="gone" />
+
+        <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+
+        <TextView android:id="@+id/chipPc" style="@style/Chip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:ellipsize="end" android:maxWidth="260dp" />
+        <TextView
+            android:id="@+id/btnLive"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/btn_live"
+            android:paddingStart="16dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="8dp"
+            android:text="@string/go_live"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+        <TextView android:id="@+id/btnSettings" style="@style/Chip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings" android:textSize="14sp" android:paddingTop="8dp" android:paddingBottom="8dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|center_vertical"
+        android:layout_marginStart="12dp"
+        android:orientation="vertical">
+
+        <com.hksit.dronelink.mobile.HoldButton android:id="@+id/btnTakeoff" android:layout_width="132dp" android:layout_height="48dp" android:layout_marginBottom="10dp" android:text="@string/take_off" />
+        <com.hksit.dronelink.mobile.HoldButton android:id="@+id/btnLand" android:layout_width="132dp" android:layout_height="48dp" android:layout_marginBottom="10dp" android:text="@string/land" />
+        <com.hksit.dronelink.mobile.HoldButton android:id="@+id/btnRth" android:layout_width="132dp" android:layout_height="48dp" android:text="@string/return_home" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/telemetry"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/chip"
+        android:fontFamily="monospace"
+        android:paddingStart="14dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="14dp"
+        android:paddingBottom="8dp"
+        android:textColor="@color/text"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/streamInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="12dp"
+        android:background="@drawable/chip"
+        android:paddingStart="10dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="6dp"
+        android:textColor="@color/muted"
+        android:textSize="12sp"
+        android:visibility="gone" />
+</FrameLayout>

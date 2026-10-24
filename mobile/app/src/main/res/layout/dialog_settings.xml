@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="DroneLink on the computer" android:textColor="@color/text" android:textSize="16sp" android:textStyle="bold" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Computers with DroneLink open on the same Wi-Fi or hotspot appear here by themselves." android:textColor="@color/muted" android:textSize="13sp" />
+        <RadioGroup android:id="@+id/pcList" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" />
+        <TextView android:id="@+id/pcNone" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="Searching… Make sure DroneLink is open on the computer and both are on the same network." android:textColor="@color/warn" android:textSize="13sp" />
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:text="Or type the address shown in DroneLink" android:textColor="@color/muted" android:textSize="13sp" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+            <EditText android:id="@+id/manualAddress" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="rtmp://192.168.1.20/live/drone" android:importantForAutofill="no" android:inputType="textUri" android:singleLine="true" android:textColor="@color/text" android:textColorHint="@color/muted" />
+            <Button android:id="@+id/scanQr" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Scan QR" />
+        </LinearLayout>
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:text="Live picture" android:textColor="@color/text" android:textSize="16sp" android:textStyle="bold" />
+        <Switch android:id="@+id/fullHd" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Full HD 1080p (needs strong Wi-Fi). Off = HD 720p" android:textColor="@color/text" />
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:text="Ground test" android:textColor="@color/text" android:textSize="16sp" android:textStyle="bold" />
+        <Switch android:id="@+id/simulator" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Simulator mode (drone stays on the ground)" android:textColor="@color/text" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="DJI's simulator: the controller sticks move a pretend drone and the flight data changes, but the motors don't start. Remove the propellers anyway. Turn it off before a real flight." android:textColor="@color/muted" android:textSize="13sp" />
+
+        <TextView android:id="@+id/about" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:textColor="@color/muted" android:textSize="12sp" />
+    </LinearLayout>
+</ScrollView>

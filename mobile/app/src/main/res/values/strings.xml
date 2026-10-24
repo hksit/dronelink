@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DroneLink Mobile</string>
+    <string name="go_live">Go live</string>
+    <string name="stop_live">Stop live</string>
+    <string name="take_off">Take off</string>
+    <string name="land">Land</string>
+    <string name="return_home">Return home</string>
+    <string name="hold_hint">Hold the button to confirm</string>
+    <string name="settings">Settings</string>
+    <string name="safety_title">Before you fly</string>
+    <string name="safety_text">DroneLink Mobile is test software (beta).\n\n• Fly only where drones are allowed, within sight, and follow your local rules (CASA in Australia, DGCA / Digital Sky in India).\n• Your controller\'s Return-to-Home (RTH) and pause buttons always work, even if this app freezes.\n• First test with the drone on the ground in Simulator mode (Settings), with the propellers removed.\n• Keep DJI Fly installed as a backup.</string>
+    <string name="safety_ok">I understand</string>
+    <string name="no_key">This test build has no DJI App Key, so it can\'t connect to a drone. Add the key as the GitHub secret DJI_APP_KEY and build again.</string>
+</resources>

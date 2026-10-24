@@ -1,0 +1,71 @@
+name: Build DroneLink Mobile (Android)
+
+on:
+  push:
+    paths: ['mobile/**', '.github/workflows/mobile.yml']
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'Also publish a GitHub Release with the APK'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Check the DJI App Key
+        env:
+          DJI_APP_KEY: ${{ secrets.DJI_APP_KEY }}
+        run: |
+          if [ -z "$DJI_APP_KEY" ]; then
+            echo "::warning title=No DJI App Key::Add the repository secret DJI_APP_KEY. This APK installs and opens, but can't connect to a drone."
+          else
+            echo "DJI App Key found"
+          fi
+
+      - name: Build APK
+        env:
+          DJI_APP_KEY: ${{ secrets.DJI_APP_KEY }}
+        run: |
+          chmod +x gradlew
+          set -o pipefail
+          ./gradlew assembleDebug --stacktrace --no-daemon 2>&1 | tee build.log || {
+            # show compile errors as annotations (job logs are hard to reach)
+            grep -E '^e: ' build.log | head -20 | while IFS= read -r line; do echo "::error title=Kotlin::${line}"; done
+            msg=$(grep -E 'What went wrong|Could not|FAILURE|error:|Execution failed' -A4 build.log | head -40 | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+            echo "::error title=Build failed::${msg}"
+            exit 1
+          }
+          V=$(grep -oP "versionName '\K[^']+" app/build.gradle)
+          mkdir -p out
+          cp app/build/outputs/apk/debug/app-debug.apk "out/DroneLink-Mobile-$V.apk"
+          echo "VERSION=$V" >> "$GITHUB_ENV"
+          ls -la out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DroneLink-Mobile-APK
+          path: mobile/out/*.apk
+
+      - name: Attach to GitHub Release
+        if: inputs.release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="mobile-v$VERSION"
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --target "$GITHUB_SHA" --prerelease --title "DroneLink Mobile $VERSION (test build)" --notes "Android test build for DJI Mini 3, Mini 3 Pro, Mini 4 Pro and DJI Enterprise drones. Install DroneLink-Mobile-$VERSION.apk on the phone or tablet. Test on the ground in Simulator mode first."
+          gh release upload "$TAG" out/*.apk --clobber
