@@ -188,7 +188,7 @@ class MainActivity : AppCompatActivity() {
             !Drone.registered -> { ui.chipDrone.text = "Signing in to DJI…"; center = "Signing in to DJI. The first time this needs the internet." }
             !Drone.aircraftConnected -> {
                 ui.chipDrone.text = "No drone"
-                center = "Plug the controller into this phone with its USB cable, then turn on the controller and the drone.\n\nSupported: DJI Mini 3, Mini 3 Pro, Mini 4 Pro and DJI Enterprise drones."
+                center = "Plug the controller into this phone with its USB cable, then turn on the controller and the drone.\n\nSupported: DJI Mini 3, Mini 3 Pro, Mini 4 Pro (with the RC-N2 controller) and DJI Enterprise drones."
             }
             else -> ui.chipDrone.text = Drone.model ?: "Drone connected"
         }

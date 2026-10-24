@@ -357,7 +357,7 @@ If a port moves because the usual one is busy, the addresses in the app change t
 
 DroneLink Mobile is an Android app that replaces DJI Fly for streaming. The pilot flies with it, and it sends the picture **and** the real flight data to DroneLink on the computer.
 
-**Drones it works with:** DJI Mini 3, Mini 3 Pro and Mini 4 Pro, plus DJI Enterprise drones (Mavic 3 Enterprise, Matrice 4, M30, M300/M350 RTK, Matrice 400). These are the drones DJI's developer kit supports. Other drones (Air 3, Avata, Mavic 3, Mini 4K…) keep using DJI Fly as in section 4.
+**Drones it works with:** DJI Mini 3, Mini 3 Pro and Mini 4 Pro (Mini 4 Pro with the RC-N2 controller, not the DJI RC 2 screen controller), plus DJI Enterprise drones (Mavic 3 Enterprise, Matrice 4, M30, M300/M350 RTK, Matrice 400). These are the drones DJI's developer kit supports. Other drones (Air 3, Avata, Mavic 3, Mini 4K…) keep using DJI Fly as in section 4.
 
 **Phones and tablets:** Android 7 or later, 64-bit (almost every phone and tablet from the last 6 years), including Samsung Galaxy Tab S models. There is no iPhone or iPad version yet.
 
