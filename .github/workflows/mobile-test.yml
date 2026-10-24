@@ -1,0 +1,46 @@
+name: Test DroneLink Mobile on an emulator
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  emulator:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get the latest test APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p mobile/apk
+          gh release download mobile-v0.1.0 -p '*.apk' -D mobile/apk
+          ls -la mobile/apk
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run on emulator (Android 14, 64-bit; runs ARM apps through translation)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          working-directory: mobile
+          script: ./ci/emulator-test.sh
+      - name: Publish screenshots and logs
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd mobile/ci-out 2>/dev/null || exit 0
+          ls -la
+          gh release view mobile-ci >/dev/null 2>&1 || gh release create mobile-ci --prerelease --title "DroneLink Mobile emulator test results" --notes "Screenshots and logs from the latest emulator test."
+          gh release upload mobile-ci *.png logcat.txt sdk.txt install.txt --clobber || true
