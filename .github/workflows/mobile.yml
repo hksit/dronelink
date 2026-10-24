@@ -21,7 +21,7 @@ jobs:
         working-directory: mobile
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
@@ -55,6 +55,17 @@ jobs:
           cp app/build/outputs/apk/debug/app-debug.apk "out/DroneLink-Mobile-$V.apk"
           echo "VERSION=$V" >> "$GITHUB_ENV"
           ls -la out
+
+      - name: Inspect APK
+        run: |
+          APK=$(ls out/*.apk)
+          AAPT=$(ls -d $ANDROID_HOME/build-tools/*/ | sort -V | tail -1)aapt2
+          size=$(du -m "$APK" | cut -f1)
+          libs=$(unzip -l "$APK" | grep -c 'lib/arm64-v8a/.*\.so' || true)
+          badging=$($AAPT dump badging "$APK" | grep -E "^package|sdkVersion|targetSdk|uses-permission" | tr '\n' ' ' | sed "s/'//g")
+          key=$($AAPT dump xmltree "$APK" --file AndroidManifest.xml | grep -A1 'com.dji.sdk.API_KEY' | grep -c 'MISSING' || true)
+          echo "::notice title=APK::${size} MB, ${libs} native libraries. ${badging}"
+          if [ "$key" != "0" ]; then echo "::notice title=DJI key::not included (secret missing)"; else echo "::notice title=DJI key::included"; fi
 
       - uses: actions/upload-artifact@v4
         with:
