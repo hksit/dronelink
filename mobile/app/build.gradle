@@ -19,6 +19,9 @@ android {
         versionName '0.1.0'
         manifestPlaceholders['DJI_API_KEY'] = djiKey ?: 'MISSING'
         buildConfigField 'boolean', 'HAS_DJI_KEY', djiKey ? 'true' : 'false'
+        // -PUI_TEST=true: skip the DJI SDK so the screens can be checked on an x86 emulator
+        // (DJI's protected loader only runs on real ARM phones)
+        buildConfigField 'boolean', 'UI_TEST', project.findProperty('UI_TEST') == 'true' ? 'true' : 'false'
         ndk {
             // DJI Mobile SDK v5 ships 64-bit ARM libraries only
             abiFilters 'arm64-v8a'

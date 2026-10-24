@@ -6,12 +6,13 @@ import android.content.Context
 class DroneLinkApp : Application() {
     override fun attachBaseContext(base: Context?) {
         super.attachBaseContext(base)
+        if (BuildConfig.UI_TEST) return
         // DJI Mobile SDK v5 needs this before anything else (from DJI's sample)
         com.cySdkyc.clx.Helper.install(this)
     }
 
     override fun onCreate() {
         super.onCreate()
-        Drone.init(this)
+        if (!BuildConfig.UI_TEST) Drone.init(this)
     }
 }

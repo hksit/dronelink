@@ -179,6 +179,7 @@ class MainActivity : AppCompatActivity() {
         val textColor = ContextCompat.getColor(this, R.color.text)
         var center: String? = null
         when {
+            BuildConfig.UI_TEST -> { ui.chipDrone.text = "UI test"; center = "UI test build: the DJI SDK is switched off." }
             !BuildConfig.HAS_DJI_KEY -> { ui.chipDrone.text = "No DJI key"; center = getString(R.string.no_key) }
             !Drone.initDone -> { ui.chipDrone.text = "Starting ${Drone.initProgress}%" }
             Drone.registerError != null -> {
