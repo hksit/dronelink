@@ -212,6 +212,13 @@ The info is **off by default** (from version 1.0.2), so viewers see only the vid
 | Clock (computer's local time) | Top right |
 | Title and second line, for example the location and pilot | Bottom left, as a lower third |
 | Stream details: quality, frame rate, bitrate | Bottom right, off by default |
+| Flight data: height, direction, speed, distance from home, GPS position, drone battery | Top centre (moves to a second row if it would overlap the LIVE badge or clock) |
+
+**Flight data** has a tick box for each item. DJI Fly sends only the picture, so flight data needs the **DroneLink Mobile** app on the pilot's phone (section 14). The label next to *Flight data* shows where the numbers come from, for example "Receiving from Mini 4 Pro". The test drone sends pretend flight data, so you can try the tick boxes without a drone.
+
+![Flight data on the picture](images/12-flight-data.png)
+
+![Flight data tick boxes](images/13-flight-data-tab.png)
 
 The info appears only while the drone is live. Changes show on OBS and viewers' screens within about a second, and DroneLink remembers your choices.
 
@@ -283,7 +290,7 @@ DroneLink receives the same live view the phone or controller shows. It can neve
 | --- | --- |
 | Picture quality | The drone app's live stream, usually 720p (some models offer 1080p), about 1 to 3 seconds behind the controller. Full-quality 4K footage stays on the drone's SD card. |
 | Sound | None from the drone. DJI's stream carries silent audio. Add your own microphone in OBS. |
-| Flight data (altitude, GPS, battery) | Not included in DJI's live stream. The test drone draws its display into the picture for testing only. |
+| Flight data (altitude, GPS, battery) | Not included in DJI's live stream. With **DroneLink Mobile** (section 14) it arrives separately and can be shown on screen. The test drone sends pretend data for testing. |
 | How far can the drone fly? | As far as its controller can reach it. The drone-to-controller radio sets the range, and DroneLink adds nothing to that limit. |
 | Drone far away, weak signal | The controller's picture turns blocky or freezes, and DroneLink shows exactly the same. |
 | Signal lost completely | Status shows "Drone feed paused". OBS, viewers, recording and Go live stay connected for 30 seconds and continue by themselves when DJI Fly reconnects. After 30 seconds DroneLink goes back to waiting, and everything still resumes when the drone returns. |
@@ -345,3 +352,48 @@ The **Help** tab in DroneLink lists the supported drones and the most common fix
 | Settings | Windows `%APPDATA%\DroneLink`, Mac `~/Library/Application Support/DroneLink` |
 
 If a port moves because the usual one is busy, the addresses in the app change to match. Always copy them from the app.
+
+## 14. DroneLink Mobile: fly with the phone app and send flight data (beta)
+
+DroneLink Mobile is an Android app that replaces DJI Fly for streaming. The pilot flies with it, and it sends the picture **and** the real flight data to DroneLink on the computer.
+
+**Drones it works with:** DJI Mini 3, Mini 3 Pro and Mini 4 Pro, plus DJI Enterprise drones (Mavic 3 Enterprise, Matrice 4, M30, M300/M350 RTK, Matrice 400). These are the drones DJI's developer kit supports. Other drones (Air 3, Avata, Mavic 3, Mini 4K…) keep using DJI Fly as in section 4.
+
+**Phones and tablets:** Android 7 or later, 64-bit (almost every phone and tablet from the last 6 years), including Samsung Galaxy Tab S models. There is no iPhone or iPad version yet.
+
+**Install (test build)**
+
+1. On the phone, open the DroneLink Mobile release page on GitHub and download **DroneLink-Mobile-x.y.z.apk**.
+2. Open the file. Android asks to allow installing from this source; allow it once.
+3. Open DroneLink Mobile and read the safety notes.
+
+**Connect**
+
+1. Plug the controller into the phone with its USB cable. Turn on the controller and the drone.
+2. Put the phone and the computer on the same Wi-Fi, or turn on the phone's hotspot and connect the computer to it.
+3. Open DroneLink on the computer. The phone finds it by itself: the top right shows **PC: <computer name>**. If it doesn't, tap **Settings** and tap **Scan QR** to scan the QR code DroneLink shows, or type the address.
+4. Tap **Go live**. The picture appears in DroneLink within a few seconds, and the **Flight data** label shows "Receiving from <drone>".
+
+**On the phone screen**
+
+| Part | What it does |
+| --- | --- |
+| Top left | Drone name, GPS satellites, drone battery, and SIMULATOR when the simulator is on |
+| Top right | The computer it sends to, **Go live / Stop**, and **Settings** |
+| Left side | **Take off**, **Land** and **Return home**. Hold each for about a second until the bar fills; a tap does nothing. |
+| Bottom | Height, distance from home, horizontal and vertical speed, and compass direction |
+| Bottom right | Stream status: frame rate and bitrate, or "Reconnecting…" |
+
+**Ground test first (Simulator mode)**
+
+In **Settings**, turn on **Simulator mode** with the drone on the ground and the **propellers removed**. The controller sticks then move a pretend drone: the flight data changes on the phone and in DroneLink, but the motors don't start. Turn it off before a real flight.
+
+**Safety**
+
+- The controller's own **Return-to-Home** and **pause** buttons always work, even if the app freezes.
+- DJI's built-in safety (no-fly zones, return home on low battery or lost signal, obstacle sensing) stays on in the drone.
+- Fly only where it's allowed and within sight, and follow your local rules (CASA in Australia, DGCA / Digital Sky in India).
+- Keep DJI Fly installed as a backup.
+
+**For developers:** the phone sends flight data to UDP port 41234 as small JSON messages; the format is in `docs/PROTOCOL.md`.
+

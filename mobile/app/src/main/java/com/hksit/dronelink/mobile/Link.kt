@@ -144,13 +144,13 @@ class Link(context: Context) {
         lastSent = now
         if (!Drone.aircraftConnected) return
         val j = JSONObject().put("dl", "tel").put("v", 1)
-        Drone.altitude?.let { j.put("alt", round1(it)) }
-        Drone.heading?.let { j.put("hdg", round1(it)) }
-        Drone.hSpeed?.let { j.put("hs", round1(it)) }
-        Drone.vSpeed?.let { j.put("vs", round1(it)) }
-        Drone.distance?.let { j.put("dist", round1(it)) }
-        Drone.lat?.let { j.put("lat", it) }
-        Drone.lon?.let { j.put("lon", it) }
+        num(j, "alt", Drone.altitude?.let(::round1))
+        num(j, "hdg", Drone.heading?.let(::round1))
+        num(j, "hs", Drone.hSpeed?.let(::round1))
+        num(j, "vs", Drone.vSpeed?.let(::round1))
+        num(j, "dist", Drone.distance?.let(::round1))
+        num(j, "lat", Drone.lat)
+        num(j, "lon", Drone.lon)
         Drone.battery?.let { j.put("bat", it) }
         Drone.satellites?.let { j.put("sats", it) }
         j.put("flying", Drone.flying)
@@ -161,6 +161,11 @@ class Link(context: Context) {
     }
 
     private fun round1(v: Double) = Math.round(v * 10) / 10.0
+
+    // JSON can't carry NaN/Infinity: leave such values out
+    private fun num(j: JSONObject, name: String, v: Double?) {
+        if (v != null && v.isFinite()) j.put(name, v)
+    }
 
     /** The broadcast address of every network this phone is on (Wi-Fi, its own hotspot, USB tethering). */
     private fun broadcastAddresses(): List<InetAddress> {

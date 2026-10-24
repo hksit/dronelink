@@ -16,6 +16,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -76,6 +77,12 @@ class MainActivity : AppCompatActivity() {
         setContentView(ui.root)
         prefs = getSharedPreferences("dronelink", Context.MODE_PRIVATE)
         hideSystemBars()
+        // keep the buttons clear of the camera notch / rounded corners
+        ViewCompat.setOnApplyWindowInsetsListener(ui.root) { v, insets ->
+            val c = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            v.setPadding(c.left, c.top, c.right, c.bottom)
+            insets
+        }
 
         link = sharedLink ?: Link(this).also { sharedLink = it }
         prefs.getString("manual", null)?.let { if (link.targetHost == null) link.chooseManual(it) }
