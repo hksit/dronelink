@@ -10,6 +10,9 @@ adb shell 'while [ "$(getprop sys.boot_completed)" != "1" ]; do sleep 2; done'
 adb shell settings put global window_animation_scale 0
 adb shell settings put global transition_animation_scale 0
 adb shell settings put global animator_duration_scale 0
+# skip the emulator's own "Viewing full screen" tip
+adb shell settings put secure immersive_mode_confirmations confirmed
+sleep 20  # let the home screen settle so it doesn't show "isn't responding"
 
 APK=$(ls apk/*.apk | head -1)
 echo "Installing $APK"
@@ -29,12 +32,13 @@ adb exec-out screencap -p > $OUT/1-start.png
 tap() {
   adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1
   adb pull /sdcard/ui.xml $OUT/ui.xml >/dev/null 2>&1
-  b=$(grep -o "text=\"$1\"[^>]*bounds=\"\[[0-9]*,[0-9]*\]\[[0-9]*,[0-9]*\]\"" $OUT/ui.xml | grep -o 'bounds="[^"]*"' | head -1 | grep -o '[0-9]*')
+  b=$(grep -oi "text=\"$1\"[^>]*bounds=\"\[[0-9]*,[0-9]*\]\[[0-9]*,[0-9]*\]\"" $OUT/ui.xml | grep -o 'bounds="[^"]*"' | head -1 | grep -o '[0-9]*')
   if [ -z "$b" ]; then echo "button '$1' not found"; return 1; fi
   set -- $b
   adb shell input tap $(( ($1 + $3) / 2 )) $(( ($2 + $4) / 2 ))
 }
 
+tap "Wait" >/dev/null 2>&1   # close a system "isn't responding" box if one shows
 tap "I understand" && sleep 3
 sleep 40   # time for the SDK to start and sign in to DJI
 adb exec-out screencap -p > $OUT/2-main.png
