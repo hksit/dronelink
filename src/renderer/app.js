@@ -14,6 +14,8 @@ let watchdog = null;
 const outputs = {};
 const overlay = window.DroneLinkOverlay ? DroneLinkOverlay.create($('screen')) : null;
 let ov = null; // on-screen info settings
+let tel = null; // latest flight data {.., at}
+const FLIGHT_KEYS = ['fHeight', 'fHeading', 'fSpeed', 'fDistance', 'fGps', 'fBattery'];
 
 const PLATFORMS = {
   youtube: { label: 'YouTube', server: 'rtmp://a.rtmp.youtube.com/live2', hint: 'YouTube Studio → Create → Go live → Stream. Copy “Stream key”.' },
@@ -158,7 +160,8 @@ function renderStreams() {
 function pushOverlay() {
   if (!overlay) return;
   const p = live && live.status === 'publishing' ? live : null;
-  overlay.update({ status: p ? 'publishing' : 'idle', since: p ? p.since : 0, width: p ? p.width : 0, height: p ? p.height : 0, fps: p ? p.fps : 0, kbps: p ? p.kbps : 0, overlay: ov || {} });
+  const t = tel && Date.now() - tel.at < 3000 ? tel : null;
+  overlay.update({ status: p ? 'publishing' : 'idle', since: p ? p.since : 0, width: p ? p.width : 0, height: p ? p.height : 0, fps: p ? p.fps : 0, kbps: p ? p.kbps : 0, overlay: ov || {}, tel: t });
 }
 
 // ---------------- on-screen info ----------------
@@ -171,7 +174,8 @@ function applyOverlay(next) {
   $('ovDetails').checked = ov.details;
   if (document.activeElement !== $('ovTitle')) $('ovTitle').value = ov.title || '';
   if (document.activeElement !== $('ovSub')) $('ovSub').value = ov.subtitle || '';
-  ['ovLive', 'ovClock', 'ovDetails', 'ovTitle', 'ovSub'].forEach((id) => ($(id).disabled = !ov.enabled));
+  for (const k of FLIGHT_KEYS) $('ov' + k).checked = ov[k] !== false;
+  ['ovLive', 'ovClock', 'ovDetails', 'ovTitle', 'ovSub', ...FLIGHT_KEYS.map((k) => 'ov' + k)].forEach((id) => ($(id).disabled = !ov.enabled));
   $('infoToggle').setAttribute('aria-pressed', String(ov.enabled));
   $('infoToggle').textContent = ov.enabled ? 'Info on video: On' : 'Info on video: Off';
   pushOverlay();
@@ -185,6 +189,26 @@ $('ovEnabled').addEventListener('change', (e) => setOverlay({ enabled: e.target.
 $('ovLive').addEventListener('change', (e) => setOverlay({ live: e.target.checked }));
 $('ovClock').addEventListener('change', (e) => setOverlay({ clock: e.target.checked }));
 $('ovDetails').addEventListener('change', (e) => setOverlay({ details: e.target.checked }));
+for (const k of FLIGHT_KEYS) $('ov' + k).addEventListener('change', (e) => setOverlay({ [k]: e.target.checked }));
+
+// flight data from DroneLink Mobile (or the test drone)
+function renderTelState() {
+  const fresh = tel && Date.now() - tel.at < 3000;
+  const el = $('telState');
+  el.dataset.state = fresh ? 'live' : 'none';
+  if (!fresh) el.textContent = 'No flight data';
+  else if (tel.source === 'test') el.textContent = 'Receiving from the test drone';
+  else el.textContent = `Receiving from ${tel.model || 'DroneLink Mobile'}${tel.sim ? ' (simulator)' : ''} · ${tel.from}`;
+}
+api.onTelemetry((t) => {
+  tel = { ...t, at: Date.now() };
+  pushOverlay();
+  renderTelState();
+});
+setInterval(() => {
+  renderTelState();
+  if (tel && Date.now() - tel.at >= 3000 && Date.now() - tel.at < 4500) pushOverlay();
+}, 1000);
 let typing = null;
 for (const [id, key] of [['ovTitle', 'title'], ['ovSub', 'subtitle']]) {
   $(id).addEventListener('input', (e) => {
@@ -301,7 +325,12 @@ api.onServerError((msg) => {
   setStatus('error', msg);
   renderStreams();
 });
+const seenPhones = {};
 api.onEvent((ev) => {
+  if (ev.kind === 'discovered' && Date.now() - (seenPhones[ev.from] || 0) > 300000) {
+    seenPhones[ev.from] = Date.now();
+    toast(`DroneLink Mobile found this computer (${ev.from})`);
+  }
   if (ev.kind === 'publish') toast(ev.ip === '127.0.0.1' ? 'Test drone connected' : `Drone connected from ${ev.ip}`);
 });
 

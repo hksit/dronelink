@@ -10,10 +10,15 @@ const { MediaServer } = require('./media-server');
 const { lanAddresses } = require('./network');
 const { Recorder, GoLive, RtspPull } = require('./outputs');
 const { Settings } = require('./settings');
+const { TelemetryHub } = require('./telemetry');
 
 const ROOT = path.join(__dirname, '..', '..');
 const STREAM_PATH = '/live/drone';
-const OVERLAY_DEFAULT = { enabled: false, live: true, clock: true, details: false, title: '', subtitle: '' };
+// f* = flight data items (need DroneLink Mobile or the test drone; DJI Fly sends none)
+const OVERLAY_DEFAULT = {
+  enabled: false, live: true, clock: true, details: false, title: '', subtitle: '',
+  fHeight: true, fHeading: true, fSpeed: true, fDistance: true, fGps: false, fBattery: false,
+};
 
 if (!app.requestSingleInstanceLock()) {
   app.quit();
@@ -38,6 +43,7 @@ let sleepBlock = null;
 let webDir = '';
 let lastSourceKey = '';
 let ips = [];
+let hub = null;
 
 function send(channel, payload) {
   if (win && !win.isDestroyed()) win.webContents.send(channel, payload);
@@ -82,6 +88,7 @@ function info() {
     rtspUrl: settings.get('rtspUrl', ''),
     overlay: overlaySettings(),
     droneHud: settings.get('droneHud', false),
+    telemetryError: hub ? hub.error : null,
   };
 }
 
@@ -93,6 +100,13 @@ function prepareWebDir() {
     fs.copyFileSync(path.join(ROOT, 'web', f), path.join(webDir, f));
   }
   writeLive(null);
+}
+
+function telemetryForPage() {
+  const t = hub && hub.current();
+  if (!t) return null;
+  const { from, at, ...data } = t;
+  return data;
 }
 
 // live.json tells the OBS / viewer page what is live and how the on-screen info looks
@@ -109,11 +123,22 @@ function writeLive(stream) {
     fps: s ? s.fps : 0,
     kbps: s ? s.kbps : 0,
     overlay: overlaySettings(),
+    tel: telemetryForPage(),
     t: Date.now(),
   };
   try {
     fs.writeFileSync(path.join(webDir, 'live.json'), JSON.stringify(doc));
   } catch (_) {}
+}
+
+let telWriteAt = 0;
+function onTelemetry(t) {
+  send('telemetry', t);
+  const now = Date.now();
+  if (now - telWriteAt >= 250) {
+    telWriteAt = now;
+    writeLive();
+  }
 }
 
 function onStreams(list) {
@@ -186,13 +211,34 @@ function startDrone({ target, remote, quality, hud }) {
     workerData: { droneWorker: true, url, quality, hud: hud !== false, fontDir: path.join(ROOT, 'assets', 'fonts') },
   });
   drone = w;
-  w.on('message', (msg) => send('drone', { ...msg, url }));
+  const remoteHost = target === 'remote' ? hostOf(url) : '';
+  w.on('message', (msg) => {
+    if (msg.type === 'telemetry') {
+      if (msg.state === 'live' && !msg.lost) {
+        const data = {
+          alt: msg.altitude, hdg: msg.heading, hs: msg.speed, vs: msg.vs, dist: msg.distance,
+          lat: msg.lat, lon: msg.lon, bat: msg.battery, sats: msg.satellites, flying: true, model: 'Test drone', sim: true,
+        };
+        if (remoteHost) hub.sendTo(remoteHost, data);
+        else hub.set(data, { source: 'test' });
+      }
+    }
+    send('drone', { ...msg, url });
+  });
   w.on('error', (err) => send('drone', { type: 'status', state: 'error', message: err.message, url }));
   w.on('exit', () => {
     if (drone === w) drone = null;
     send('drone', { type: 'status', state: 'stopped', message: 'Test drone landed.', url });
   });
   return { ok: true, url };
+}
+
+function hostOf(url) {
+  try {
+    return new URL(url.replace(/^rtmp:/i, 'http:')).hostname;
+  } catch (_) {
+    return '';
+  }
 }
 
 function stopDrone() {
@@ -258,7 +304,7 @@ function registerIpc() {
     return true;
   });
   ipcMain.handle('set-overlay', (_e, patch) => {
-    const allowed = ['enabled', 'live', 'clock', 'details', 'title', 'subtitle'];
+    const allowed = Object.keys(OVERLAY_DEFAULT);
     const next = overlaySettings();
     for (const k of allowed) if (patch && k in patch) next[k] = typeof OVERLAY_DEFAULT[k] === 'boolean' ? !!patch[k] : String(patch[k]).slice(0, 80);
     settings.set('overlay', next);
@@ -324,6 +370,10 @@ app.whenReady().then(async () => {
   } catch (err) {
     server.error = err.message;
   }
+  hub = new TelemetryHub({ rtmpUrlFor: (host) => rtmpUrlFor(host), version: app.getVersion() });
+  hub.on('update', onTelemetry);
+  hub.on('discovered', (d) => send('event', { kind: 'discovered', ...d }));
+  await hub.start();
   send('info', info());
 
   // Wi-Fi changes (new network, hotspot on/off) change the address to give the drone
@@ -351,6 +401,7 @@ app.on('before-quit', async (e) => {
   e.preventDefault();
   try {
     stopDrone();
+    hub && hub.stop();
     recorder && recorder.disable();
     golive && golive.disable();
     rtsp && rtsp.disable();

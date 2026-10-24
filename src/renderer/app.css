@@ -263,3 +263,7 @@ input:focus, select:focus { border-color: var(--hivis); outline: none; }
 .form.two { grid-template-columns: 1fr 1fr; }
 .hudrow { margin-top: 16px; }
 .rec-badge { z-index: 2; }
+
+.subhead { font: 600 13px var(--ui); margin: 18px 0 8px; display: flex; align-items: center; gap: 10px; }
+.tel-state { font-weight: 600; font-size: 12px; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,.06); color: var(--muted); }
+.tel-state[data-state="live"] { background: rgba(46,160,67,.18); color: #56d364; }

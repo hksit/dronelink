@@ -69,9 +69,9 @@
       }
     }).catch(function () { show('DroneLink is not reachable', 'Check that this device is on the same Wi-Fi and DroneLink is open.'); });
     // restart a frozen player
-    if (player) { if (video.currentTime === last) still++; else still = 0; last = video.currentTime; if (still >= 4) { stop(); still = 0; } }
+    if (player) { if (video.currentTime === last) still++; else still = 0; last = video.currentTime; if (still >= 8) { stop(); still = 0; } }
   }
-  poll(); setInterval(poll, 1000);
+  poll(); setInterval(poll, 500);
 })();
 </script>
 </body>

@@ -32,4 +32,5 @@ contextBridge.exposeInMainWorld('dronelink', {
   onOutput: listen('output'),
   onEvent: listen('event'),
   onServerError: listen('server-error'),
+  onTelemetry: listen('telemetry'),
 });

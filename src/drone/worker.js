@@ -55,6 +55,11 @@ class DroneEngine {
         distance: s.distance,
         battery: s.battery,
         heading: s.heading,
+        vs: s.vs,
+        lat: s.lat,
+        lon: s.lon,
+        satellites: s.satellites,
+        lost: Date.now() < (this.pausedUntil || 0),
         fps: this.measuredFps || 0,
         state: this.state,
       });

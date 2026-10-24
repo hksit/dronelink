@@ -1,5 +1,9 @@
 # Changes
 
+## 1.1.0 (24 Oct 2026)
+- Flight data on screen: height, direction, speed, distance, GPS and battery, each with its own tick box (On-screen info → Flight data). Needs the new DroneLink Mobile app on the pilot's phone; the test drone sends pretend data for testing.
+- DroneLink Mobile finds this computer on the Wi-Fi by itself (UDP port 41234).
+
 ## 1.0.3 (24 Oct 2026)
 - The Info on video and Full screen buttons appear when the mouse moves over the picture and fade out after a few seconds. The mouse pointer hides too.
 

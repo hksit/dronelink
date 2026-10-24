@@ -71,6 +71,16 @@
           <label class="switch"><input type="checkbox" id="ovClock"> <span>Clock</span></label>
           <label class="switch"><input type="checkbox" id="ovDetails"> <span>Stream details (quality, frame rate, bitrate)</span></label>
         </div>
+        <h3 class="subhead">Flight data <span class="tel-state" id="telState" data-state="none">No flight data</span></h3>
+        <div class="info-grid">
+          <label class="switch"><input type="checkbox" id="ovfHeight"> <span>Height</span></label>
+          <label class="switch"><input type="checkbox" id="ovfHeading"> <span>Direction (compass)</span></label>
+          <label class="switch"><input type="checkbox" id="ovfSpeed"> <span>Speed</span></label>
+          <label class="switch"><input type="checkbox" id="ovfDistance"> <span>Distance from home</span></label>
+          <label class="switch"><input type="checkbox" id="ovfGps"> <span>GPS position</span></label>
+          <label class="switch"><input type="checkbox" id="ovfBattery"> <span>Drone battery</span></label>
+        </div>
+        <p class="muted small" id="telHelp">DJI Fly sends only the picture, so flight data needs the <b>DroneLink Mobile</b> app on the pilot's phone (DJI Mini 3, Mini 3 Pro, Mini 4 Pro and DJI Enterprise drones). The test drone sends pretend flight data so you can try these.</p>
         <div class="form two">
           <label>Title (bottom left)
             <input id="ovTitle" type="text" maxlength="80" placeholder="e.g. Kings Park aerial survey" spellcheck="true">

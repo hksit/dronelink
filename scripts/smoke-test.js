@@ -48,6 +48,27 @@ const fail = (msg) => {
   if (size < 100000) fail('recording is empty');
   console.log(`recorded ${(size / 1e6).toFixed(1)} MB`);
 
+  // flight data port: a phone finds this computer and sends height/direction
+  const { TelemetryHub } = require('../src/main/telemetry');
+  const dgram = require('dgram');
+  const hub = new TelemetryHub({ rtmpUrlFor: (h) => `rtmp://${h}:${server.rtmpPort}/live/drone`, port: 41299 });
+  if (!(await hub.start())) fail(hub.error);
+  const phone = dgram.createSocket('udp4');
+  await new Promise((r) => phone.bind(0, '127.0.0.1', r));
+  const reply = await new Promise((resolve) => {
+    const t = setTimeout(() => resolve(null), 3000);
+    phone.once('message', (b) => { clearTimeout(t); resolve(JSON.parse(b.toString())); });
+    phone.send(JSON.stringify({ dl: 'discover', v: 1 }), 41299, '127.0.0.1');
+  });
+  if (!reply || reply.dl !== 'here' || !/^rtmp:\/\//.test(reply.rtmp)) fail('no discovery reply: ' + JSON.stringify(reply));
+  const got = new Promise((resolve) => hub.once('update', resolve));
+  phone.send(JSON.stringify({ dl: 'tel', v: 1, alt: 72.4, hdg: 47, hs: 6.3, bat: 64, model: 'Mini 4 Pro<script>' }), 41299, '127.0.0.1');
+  const t = await Promise.race([got, new Promise((r) => setTimeout(() => r(null), 3000))]);
+  if (!t || t.alt !== 72.4 || t.hdg !== 47 || t.model !== 'Mini 4 Proscript') fail('flight data not received: ' + JSON.stringify(t));
+  console.log(`flight data: discovery ok (${reply.rtmp}), height ${t.alt} m, heading ${t.hdg}°`);
+  phone.close();
+  hub.stop();
+
   drone.stop();
   await server.stop();
   console.log('PASS');
