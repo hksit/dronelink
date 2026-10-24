@@ -9,13 +9,14 @@ def djiKey = (project.findProperty('DJI_APP_KEY') ?: System.getenv('DJI_APP_KEY'
 
 android {
     namespace 'com.hksit.dronelink.mobile'
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId 'com.hksit.dronelink.mobile'
         minSdk 24
-        targetSdk 35
-        versionCode 1
+        targetSdk 36
+        // every GitHub build gets a higher number, as Google Play requires
+        versionCode((System.getenv('GITHUB_RUN_NUMBER') ?: '1').toInteger() + 100)
         versionName '0.1.0'
         manifestPlaceholders['DJI_API_KEY'] = djiKey ?: 'MISSING'
         buildConfigField 'boolean', 'HAS_DJI_KEY', djiKey ? 'true' : 'false'
@@ -31,6 +32,15 @@ android {
     // Test signing key (in the repo on purpose) so every test build installs over the last one.
     // Google Play builds will use Play App Signing with a separate, private upload key.
     signingConfigs {
+        // private upload key for Google Play, from GitHub secrets (never in the repo)
+        if (System.getenv('UPLOAD_KEYSTORE')) {
+            upload {
+                storeFile file(System.getenv('UPLOAD_KEYSTORE'))
+                storePassword System.getenv('UPLOAD_PASSWORD')
+                keyAlias 'upload'
+                keyPassword System.getenv('UPLOAD_PASSWORD')
+            }
+        }
         test {
             storeFile rootProject.file('test-signing.jks')
             storePassword 'dronelink-test'
@@ -45,7 +55,7 @@ android {
         }
         release {
             minifyEnabled false
-            signingConfig signingConfigs.test
+            signingConfig System.getenv('UPLOAD_KEYSTORE') ? signingConfigs.upload : signingConfigs.test
         }
     }
 

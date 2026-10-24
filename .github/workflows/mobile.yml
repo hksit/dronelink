@@ -37,13 +37,28 @@ jobs:
             echo "DJI App Key found"
           fi
 
-      - name: Build APK
+      - name: Prepare the Play upload key
+        env:
+          KEY_B64: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+          KEY_PW: ${{ secrets.ANDROID_UPLOAD_PASSWORD }}
+        run: |
+          if [ -n "$KEY_B64" ] && [ -n "$KEY_PW" ]; then
+            echo "$KEY_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+            echo "UPLOAD_KEYSTORE=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
+            echo "::add-mask::$KEY_PW"
+            echo "UPLOAD_PASSWORD=$KEY_PW" >> "$GITHUB_ENV"
+            echo "::notice title=Signing::Signed with the private Play upload key"
+          else
+            echo "::warning title=Signing::No upload key secrets yet: signed with the test key (fine for testing, not for Google Play)"
+          fi
+
+      - name: Build APK and Play bundle
         env:
           DJI_APP_KEY: ${{ secrets.DJI_APP_KEY }}
         run: |
           chmod +x gradlew
           set -o pipefail
-          ./gradlew assembleRelease --stacktrace --no-daemon 2>&1 | tee build.log || {
+          ./gradlew assembleRelease bundleRelease --stacktrace --no-daemon 2>&1 | tee build.log || {
             # show compile errors as annotations (job logs are hard to reach)
             grep -E '^e: ' build.log | head -20 | while IFS= read -r line; do echo "::error title=Kotlin::${line}"; done
             msg=$(grep -E 'What went wrong|Could not|FAILURE|error:|Execution failed' -A4 build.log | head -40 | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
@@ -53,6 +68,7 @@ jobs:
           V=$(grep -oP "versionName '\K[^']+" app/build.gradle)
           mkdir -p out
           cp app/build/outputs/apk/release/app-release.apk "out/DroneLink-Mobile-$V.apk"
+          cp app/build/outputs/bundle/release/app-release.aab "out/DroneLink-Mobile-$V.aab"
           echo "VERSION=$V" >> "$GITHUB_ENV"
           ls -la out
 
@@ -62,7 +78,7 @@ jobs:
           AAPT=$(ls -d $ANDROID_HOME/build-tools/*/ | sort -V | tail -1)aapt2
           size=$(du -m "$APK" | cut -f1)
           libs=$(unzip -l "$APK" | grep -c 'lib/arm64-v8a/.*\.so' || true)
-          badging=$($AAPT dump badging "$APK" | grep -E "^package|sdkVersion|targetSdk|uses-permission" | tr '\n' ' ' | sed "s/'//g")
+          badging=$($AAPT dump badging "$APK" | grep -E "^package|sdkVersion|targetSdk" | tr '\n' ' ' | sed "s/'//g")
           key=$($AAPT dump xmltree "$APK" --file AndroidManifest.xml | grep -A1 'com.dji.sdk.API_KEY' | grep -c 'MISSING' || true)
           echo "::notice title=APK::${size} MB, ${libs} native libraries. ${badging}"
           if [ "$key" != "0" ]; then echo "::notice title=DJI key::not included (secret missing)"; else echo "::notice title=DJI key::included"; fi
@@ -70,7 +86,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: DroneLink-Mobile-APK
-          path: mobile/out/*.apk
+          path: mobile/out/*
 
       - name: Attach to GitHub Release
         if: inputs.release
@@ -79,4 +95,4 @@ jobs:
         run: |
           TAG="mobile-v$VERSION"
           gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --target "$GITHUB_SHA" --prerelease --title "DroneLink Mobile $VERSION (test build)" --notes "Android test build for DJI Mini 3, Mini 3 Pro, Mini 4 Pro and DJI Enterprise drones. Install DroneLink-Mobile-$VERSION.apk on the phone or tablet. Test on the ground in Simulator mode first."
-          gh release upload "$TAG" out/*.apk --clobber
+          gh release upload "$TAG" out/*.apk out/*.aab --clobber
