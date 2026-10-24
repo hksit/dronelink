@@ -41,7 +41,8 @@ object Streamer {
     val streaming: Boolean
         get() = Drone.initDone && runCatching { manager.isStreaming }.getOrDefault(false)
 
-    private val statusListener = object : LiveStreamStatusListener {
+    // created on first use, after the SDK has started
+    private val statusListener by lazy { object : LiveStreamStatusListener {
         override fun onLiveStreamStatusUpdate(s: LiveStreamStatus?) {
             status = s
             Drone.changed()
@@ -54,7 +55,7 @@ object Streamer {
             }
             Drone.changed()
         }
-    }
+    } }
 
     private fun ensureListener() {
         if (listening || !Drone.initDone) return
